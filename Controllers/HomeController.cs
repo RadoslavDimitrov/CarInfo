@@ -20,6 +20,9 @@ namespace CarInfo.Controllers
 
         public IActionResult Privacy()
         {
+            
+
+
             return View();
         }
 
