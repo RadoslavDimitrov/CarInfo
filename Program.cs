@@ -1,5 +1,6 @@
 using CarInfo.Data;
 using CarInfo.Services;
+using Data.Data.Infrastructure;
 using Data.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<AppUser>(
+    options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+        options.SignIn.RequireConfirmedEmail = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequiredUniqueChars = 0;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+    }
+    )
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+    
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddTransient<ISeedService, SeedService>();
@@ -45,5 +59,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+using(var scope = app.Services.CreateScope())
+{
+    await DbSeeder.AdminAndRolesSeeder(scope.ServiceProvider);
+}
 
 app.Run();
